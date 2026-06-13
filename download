@@ -1,0 +1,1396 @@
+import { useState, useEffect, useRef, useCallback } from "react";
+
+// ─── Word Bank ────────────────────────────────────────────────────────────────
+const WORDS = {
+  4: [
+    "ARCH","ARMY","BARN","BEAM","BEAR","BELL","BIRD","BITE","BLOW","BLUE",
+    "BOLT","BOND","BONE","BOOK","BOOM","BORN","BOSS","BOWL","BREW","BRIM",
+    "BUCK","BULB","BURN","BUZZ","CAGE","CAKE","CALM","CAPE","CARD","CARE",
+    "CAVE","CHEF","CHIP","CHOP","CLAM","CLAY","CLIP","CLUB","COAL","COAT",
+    "CODE","COIL","COIN","COLD","CONE","COOK","COOL","CORD","CORE","CORN",
+    "CREW","CROP","CUBE","CURL","DARE","DARK","DASH","DAWN","DAYS","DEAD",
+    "DEAL","DEAN","DEAR","DECK","DEED","DEEP","DELL","DENT","DESK","DIME",
+    "DINE","DIRT","DISK","DIVE","DOCK","DOME","DOOR","DOSE","DOVE","DOWN",
+    "DRAW","DRIP","DROP","DRUM","DUAL","DUSK","DUST","DYER","EACH","EARL",
+    "EARN","EAST","EASY","EDGE","ELSE","EMIT","ENVY","EPIC","EVEN","EVER",
+    "EVIL","EXAM","FACE","FACT","FADE","FAIL","FAIR","FALL","FAME","FARM",
+    "FAST","FATE","FAWN","FAZE","FEAT","FEEL","FELL","FELT","FEND","FERN",
+    "FILE","FILL","FILM","FIND","FIRE","FIRM","FISH","FIST","FIZZ","FLAG",
+    "FLAP","FLAT","FLAW","FLEA","FLEW","FLEX","FLIP","FLIT","FLOW","FOAM",
+    "FOLD","FOND","FONT","FORD","FORK","FORM","FORT","FOWL","FREE","FROG",
+    "FROM","FUEL","FULL","FUND","FUSE","FUSS","GALE","GAME","GANG","GAZE",
+    "GEAR","GENE","GIFT","GILL","GIVE","GLAD","GLAM","GLEN","GLOB","GLOW",
+    "GLUE","GOAL","GOAT","GOES","GOLD","GOLF","GONE","GOOD","GOWN","GRAB",
+    "GRAM","GREY","GRID","GRIN","GRIP","GRIT","GROW","GULF","GULL","GUST",
+    "HACK","HAIL","HAIR","HALF","HALL","HALT","HAND","HANG","HARD","HARM",
+    "HARP","HAWK","HEAD","HEAL","HEAP","HEAR","HEAT","HEEL","HELP","HERB",
+    "HERO","HIGH","HILL","HINT","HIRE","HOLE","HOLY","HOME","HOOK","HOPE",
+    "HORN","HOST","HOUR","HOWL","HULL","HUMP","HUNT","HURL","HYMN","INCH",
+    "IRON","ISLE","ITEM","JADE","JAIL","JERK","JOIN","JOKE","JUMP","JUST",
+    "KEEN","KEEP","KELP","KICK","KIND","KING","KNIT","KNOW","LACK","LAKE",
+    "LAMB","LAMP","LAND","LANE","LAST","LATE","LAVA","LAWN","LEAD","LEAF",
+    "LEAN","LEAP","LEFT","LEND","LENS","LIFT","LIME","LINE","LINK","LION",
+    "LIST","LIVE","LOAD","LOAN","LOFT","LONG","LOOP","LORD","LORE","LOSE",
+    "LOSS","LOST","LOUD","LOVE","LUCK","LURE","LURK","MACE","MADE","MAIL",
+    "MAIN","MAKE","MALE","MALT","MANE","MARK","MARS","MAST","MATH","MAZE",
+    "MEAL","MEAN","MEAT","MELT","MESH","MICE","MILD","MILE","MILK","MILL",
+    "MIME","MIND","MINE","MINT","MIST","MODE","MOLE","MOLT","MOOD","MOON",
+    "MOOR","MORE","MOSS","MOVE","MUCH","MULE","MUSE","MYTH","NAIL","NAME",
+    "NAVY","NECK","NEED","NEWS","NEXT","NICE","NODE","NOON","NORM","NOSE",
+    "NOTE","NULL","OATH","ODDS","ONCE","OPEN","OVAL","OVEN","OVER","PACK",
+    "PAGE","PAIN","PAIR","PALM","PATH","PAVE","PAWN","PEAK","PEAR","PEEL",
+    "PEER","PINE","PINK","PIPE","PLAN","PLAY","PLOW","PLUG","PLUM","PLUS",
+    "POEM","POET","POLE","POLL","POND","POOL","PORT","POSE","POST","POUR",
+    "PREY","PULL","PUMP","PURE","PUSH","RACE","RACK","RAGE","RAID","RAIL",
+    "RAIN","RAKE","RANG","RANK","RARE","RATE","REAL","REED","REEF","REEL",
+    "RENT","REST","RICE","RICH","RIDE","RIFE","RING","RIOT","RISE","RISK",
+    "ROAD","ROAM","ROAR","ROBE","ROCK","RODE","ROLE","ROLL","ROOF","ROOM",
+    "ROOT","ROPE","ROSE","RUIN","RULE","RUMP","RUNE","RUSH","RUST","SAGE",
+    "SAIL","SALE","SAND","SANG","SANK","SEAL","SEAM","SEAT","SEED","SEEK",
+    "SELF","SELL","SENT","SHED","SHIN","SHIP","SHOE","SHOP","SHOT","SHOW",
+    "SHUT","SIDE","SIGH","SIGN","SILK","SING","SINK","SIZE","SKIN","SKIP",
+    "SLAB","SLAM","SLAP","SLIM","SLIP","SLOT","SLOW","SLUG","SNAP","SNOW",
+    "SOAK","SOAR","SOCK","SOFT","SOIL","SOLE","SOME","SONG","SOON","SORE",
+    "SORT","SOUL","SOUP","SPAN","SPIN","SPOT","STAR","STAY","STEM","STEP",
+    "STEW","STIR","SUCH","SUIT","SULK","SUNG","SUNK","SWAP","SWAT","SWAY",
+    "SWIM","TAIL","TALE","TALL","TANK","TASK","TEAL","TEAM","TEAR","TELL",
+    "THAN","THAT","THEM","THEN","THEY","THIN","THIS","TIDY","TILE","TILL",
+    "TIME","TINY","TOAD","TOLL","TOMB","TONE","TOOL","TOPS","TORN","TOSS",
+    "TOUR","TOWN","TRAP","TRAY","TREE","TRIM","TRIO","TRIP","TRUE","TUBE",
+    "TUCK","TUFF","TUSK","TWIN","TYPE","UGLY","UNDO","UNIT","UPON","URGE",
+    "VALE","VANE","VARY","VAST","VEIL","VEIN","VERY","VIBE","VIEW","VINE",
+    "VOID","VOLT","VOTE","WADE","WAGE","WAKE","WAND","WARD","WARE","WARM",
+    "WARN","WARP","WARY","WAVE","WEAK","WEAN","WELD","WELL","WELT","WENT",
+    "WERE","WEST","WHIM","WIDE","WIFE","WILD","WILL","WIND","WINE","WING",
+    "WIRE","WISE","WISH","WITH","WOKE","WOLF","WOMB","WOOD","WOOL","WORD",
+    "WORE","WORK","WORM","WORN","WRAP","WREN","WRIT","YARD","YAWN","YEAR",
+    "YELL","YOGA","YOKE","YORE","ZERO","ZINC","ZONE","ZOOM"
+  ],
+  5: [
+    "ABIDE","ABODE","ABHOR","ACORN","AGILE","AGLOW","ALBUM","ALERT","ALGAE","ALIBI",
+    "ALOFT","AMBLE","AMUSE","ANGEL","ANKLE","ANVIL","APHID","APTLY","ARBOR","ARDOR",
+    "BACON","BADGE","BANJO","BASIC","BASIL","BATCH","BEACH","BELLE","BENCH","BIRCH",
+    "BLAZE","BLEAK","BLISS","BLINK","BLUNT","BLURB","BOOST","BOXER","BRINE","BRISK",
+    "CAMEL","CANDY","CARGO","CEDAR","CHAIR","CHALK","CHARM","CHASE","CHESS","CHEWY",
+    "CHIEF","CHILD","CIVIC","CLAMP","CLASP","CLEFT","CLERK","CLOAK","CLOWN","COAST",
+    "CORAL","COULD","COVEN","CRAFT","CRIMP","CRUSH","CYBER","CYCLE","DAISY","DECOY",
+    "DELTA","DEPOT","DERBY","DITCH","DIZZY","DODGE","DOGMA","DOWRY","DRAFT","DRAIN",
+    "DRAWL","DREAD","DREAM","DRIFT","DROVE","DUSKY","EAGLE","EASEL","EBONY","EJECT",
+    "ELBOW","ELDER","EMBER","EPOCH","EXCEL","EXILE","EXPEL","EXULT","EYRIE","FABLE",
+    "FACET","FARCE","FAUNA","FEAST","FEVER","FJORD","FLARE","FLASK","FLAIR","FLAME",
+    "FLEET","FLESH","FLOCK","FLOSS","FLUKE","FLUTE","FOAMY","FORTE","GAUZE","GAVEL",
+    "GIDDY","GIRTH","GIZMO","GLEAM","GLIDE","GLOOM","GLOAT","GLOSS","GLYPH","GNOME",
+    "GORGE","GOUGE","GRACE","GRAIL","GRAZE","GREED","GRIPE","GROVE","GROWL","GRUFF",
+    "HARSH","HASTE","HAVEN","HAZEL","HEIST","HELIX","HENCE","HINGE","HIPPO","HOARD",
+    "HOMER","HONEY","HORDE","HOVER","HUMID","HUSKY","HUTCH","HYENA","IDIOM","IGLOO",
+    "IMPLY","INEPT","INFER","INGOT","INTER","IONIC","IRATE","IRONY","JAUNT","JAZZY",
+    "JELLY","JOUST","JUMBO","JUMPY","JUROR","KARMA","KAYAK","KEBAB","KNAVE","KNEEL",
+    "KNOLL","KNACK","LANCE","LAPEL","LAPSE","LARVA","LATCH","LATHE","LEMON","LIBEL",
+    "LILAC","LITHE","LIVER","LLAMA","LODGE","LOFTY","LUCID","LUCKY","LURID","LYRIC",
+    "MAPLE","MARSH","MAXIM","MELEE","MERCY","MERIT","MICRO","MIRTH","MISER","MOCHA",
+    "MOGUL","MONKS","MOODY","MOOSE","MORPH","MOSSY","MOTIF","MURKY","NADIR","NAIVE",
+    "NAVAL","NERVY","NIGHT","NOBLE","NYMPH","OCEAN","OCTET","OLIVE","ONSET","OPERA",
+    "OPTIC","ORBIT","OTTER","OUTDO","PADDY","PADRE","PANDA","PANIC","PANEL","PAPAL",
+    "PARSE","PATCH","PATSY","PAUSE","PEACH","PERCH","PETTY","PIXEL","PLAID","PLANK",
+    "PLEAD","PLUME","POUTY","PREEN","PRIDE","PRISM","PRIVY","PROBE","PRONE","PRUDE",
+    "PRUNE","PSALM","PUNKY","PURGE","PYGMY","QUALM","QUEEN","QUERY","QUEST","QUEUE",
+    "QUILL","QUIRK","QUOTA","RABBI","RADAR","RAVEN","REALM","REBUS","REBUT","REGAL",
+    "RELAY","RELIC","REMIT","REPAY","REPEL","RESIN","REVEL","RIDER","RISKY","RIVET",
+    "ROAST","ROBIN","ROCKY","RODEO","ROUGE","ROWDY","RUMOR","RUPEE","RURAL","RUSTY",
+    "SALVO","SANDY","SASSY","SAUNA","SAVVY","SCALP","SCALD","SCARF","SCENE","SCONE",
+    "SCOUT","SERUM","SHAKE","SHALL","SHAME","SHAWL","SHEEN","SHEER","SHELF","SHIRK",
+    "SHONE","SHOWY","SHRUG","SIEGE","SIGMA","SILKY","SINEW","SKIMP","SLANG","SLANT",
+    "SLASH","SLEEK","SLEET","SLICK","SLIME","SLUMP","SMEAR","SMELT","SMIRK","SMOKY",
+    "SNARE","SNEAK","SNIDE","SOLAR","SONIC","SPASM","SPAWN","SPEAR","SPECK","SPICE",
+    "SPIKE","SPILL","SPINE","SPIRE","SPITE","SPOOF","SPOOK","SPORE","SPORT","SPOUT",
+    "SPREE","SQUAD","SQUAT","SQUID","STAFF","STAID","STAIN","STAIR","STALE","STALL",
+    "STAMP","STAND","STARK","STASH","STOMP","STORK","STORM","STRAP","STRUT","STUNT",
+    "SUAVE","SULKY","SUNNY","SURGE","SWAMP","SWARM","SWEAR","SWEPT","SWIRL","SYRUP",
+    "TALON","TANGY","TAPIR","TAUNT","TAWNY","TENSE","TEPID","THEFT","THORN","TIARA",
+    "TITHE","TOTEM","TOXIC","TRAMP","TROVE","TRUCE","TRULY","TRYST","TUBER","TULIP",
+    "TUNER","TUNIC","TUTOR","TWANG","TWEED","TWIRL","ULCER","ULTRA","UNIFY","UNZIP",
+    "UPEND","UPPER","UPSET","USURP","VAULT","VAUNT","VENOM","VERGE","VIGIL","VIRAL",
+    "VISOR","VISTA","VIXEN","VOTER","VOUCH","WALTZ","WARTY","WASTE","WATCH","WEARY",
+    "WEDGE","WHACK","WHEAT","WHIFF","WHIRL","WHISK","WIELD","WITTY","WRATH","WRING",
+    "WRIST","WROTE","YACHT","YEARN","YODEL","YOKEL","ZILCH","ZONAL","ZONES","ABASH",
+    "ABBOT","ABBEY","ABYSS","ACTED","ACUTE","ADAGE","ADORN","ADULT","AFOOT","AFOUL",
+    "AGATE","AGONY","AIDED","AIMER","AISLE","ALGAL","ALLAY","ALLOT","ALLOW","ALOFT",
+    "AMAZE","AMINO","AMPLE","ANGER","ANNEX","ANNOY","ANTIC","ANVIL","AORTA","APPEL",
+    "APTLY","AROMA","AROSE","ARRAY","ATONE","ATTIC","AUDIT","AUGUR","AWASH","AWFUL",
+    "AWOKE","AZURE","BLEND","BLOKE","BLOWN","BLUFF","BLUNT","BOAST","BOGGY","BONUS",
+    "BOOZE","BOTCH","BOUND","BOXER","BRACE","BRAID","BRAND","BRASH","BRAWN","BRAZE",
+    "BROOD","BROOK","BROOM","BROTH","BROWS","BUDGE","BULGE","BULLY","BUNCH","BUNNY",
+    "BURNT","BURLY","BUSHY","BYLAW","CABIN","CAIRN","CANAL","CAPER","CASTE","CATTY",
+    "CAULK","CAUSE","CHAFE","CHAFF","CHAMP","CHANT","CHEAP","CHEAT","CHECK","CHEEK",
+    "CHEER","CHORD","CHOSE","CHUNK","CHURN","CIGAR","CINCH","CLANG","CLANK","CLASH",
+    "CLING","CLINK","CLONE","CLOSE","CLOTH","CLOUD","CLUCK","CLUED","CLUES","CLUMP",
+    "COACH","COAXED","COBALT","COMET","COMIC","COMMA","CONCH","CONDO","CONTE","CORAL",
+    "CORNY","COUCH","COUGH","COULD","CRAVE","CREEK","CRISP","CRONE","CRONY","CROON",
+    "CROSS","CROWD","CROWN","CRUEL","CRUMB","CRUST","CUBIC","CUMIN","CURIO","CURLY",
+    "CURRY","CURSE","CURVE","CUTIE","CYCAD","DADDY","DAILY","DALLY","DANCE","DANDY",
+    "DAZED","DENIM","DENSE","DEPOT","DEPTH","DERBY","DIRTY","DISCO","DIVAN","DIZZY",
+    "DODGY","DOUGH","DOWDY","DOWEL","DOYEN","DRAPE","DRAWL","DROSS","DROVE","DRUID",
+    "DRUNK","DRUPE","DRYER"," DUCHY","DUCHY","DUSKY","DWARF","EASEL","EDGED","EERIE",
+    "EGRET","EIGHT","ELEGY","ELFIN","ELITE","EMCEE","EMPTY","ENDED","ENSUE","EPOXY",
+    "EQUAL","EQUIP","ERGOT","ESSAY","ESTER","ETHOS","EVADE","EVENT","EVERY","EXACT",
+    "EXERT","EXTOL","FAINT","FAITH","FAKER","FANCY","FARCE","FATAL","FEIGN","FEISTY",
+    "FERRY","FETID","FIBER","FIEND","FIERY","FIFTY","FILMY","FILTH","FINCH","FIRST",
+    "FISHY","FIXED","FIZZY","FLAKY","BLAND","FLINCH","FLOOD","FLOOR","FLORA","FLOSS",
+    "FOGGY","FOLIO","FOLLY","FOUND","FRAIL","FRAME","FRANK","FRAUD","FREAK","FRESH",
+    "FRIAR","FROZE","FROZE","FRUMP","FRYER","FUZZY","GAMMA","GAMUT","GASSY","GAUDY",
+    "GAUZE","GAWKY","GECKO","GIDDY","GIRTH","GLADE","GLAIR","GLASS","GLAZE","GLINT",
+    "GLOOM","GLOAT","GLOSS","GLYPH","GOLEM","GOLLY","GOOEY","GRAFT","GRASP","GROAN",
+    "GROUT","GUILE","GUISE","GULCH","GUSTO","GYPSY","HABIT","HAIKU","HANDY","HANGS",
+    "HAPPY","HARDY","HARPY","HATCH","HAUNT","HAVOC","HEDGE","HEFTY","HENCE","HERBY",
+    "HIRED","HITCH","HOARD","HOBBY","HOLLY","HOMER","HORNY","HOTEL","HOTLY","HOUND",
+    "HUFFY","HULKY","HUMOR","HUNCH","HURRY","HUSKY","IDIOM","IMPLY","INANE","INFER",
+    "INLAY","INNER","INPUT","INTER","INURE","IVORY","JAZZY","JERKY","JETTY","JIFFY",
+    "JOLLY","JUMPY","JUICY","KINKY","KITTY","KNACK","KNOBBLY","KUDOS","LANKY","LARDY",
+    "LATEX","LEAKY","LEAPT","LEAST","LEAFY","LEGGY","LEMON","LINER","LIPPY","LOCAL",
+    "LOFTY","LOGIC","LONELY","LOSSY","LOUSY","LOVER","LOWLY","LUMPY","LUNAR","LUSTY",
+    "MAGIC","MAIZE","MANLY","MANOR","MARRY","MASKS","MATEY","MATTE","MEALY","MEDIC",
+    "MELEE","MESSY","MINTY","MIRKY","MISTY","MOIST","MOLDY","MONEY","MOODY","MOTIF",
+    "MOUSY","MUDDY","MULCH","MUSHY","MUSKY","MUSTY","NERDY","NIPPY","NITRO","NOBLE",
+    "NODDY","NOISY","NOOKS","NOTCH","NOVEL","NUBBY","NUTTY","ODDLY","OFFAL","OGLED",
+    "OLIVE","ORDER","OUNCE","OUGHT","OVOID","OWING","OXIDE","PACED","PAGAN","PALSY",
+    "PAMPH","PANSY","PASTY","PATCHY","PATTY","PEAKY","PENAL","PEPPY","PERKY","PETTY",
+    "PICKY","PILOT","PINEY","PINKY","PITHY","PLASH","PLEAT","PLONK","PLUMB","PLUMP",
+    "PLUSHY","POKER","POLAR","POLKA","POPPY","POTTY","POUTY","PRIMO","PRIVY","PRIVY",
+    "PRUDE","PUDGY","PUFFY","PUGGY","PUNKY","PUPPY","PURSY","PUSHY","PUTTY","PYGMY",
+    "QUAFF","QUAKY","QUAVY","QUILL","QUIRT","QUOTA","RAINY","RALLY","RANDY","RANGY",
+    "RAPID","RASPY","RATTY","READY","REEDY","REGAL","REPAY","RISKY","RITZY","ROGUE",
+    "ROOMY","ROPEY","ROSIN","ROUGH","ROWDY","RUDDY","RUGBY","RULER","RUNNY","RUSTY",
+    "SAINT","SALTY","SANDY","SAPPY","SAUCY","SAVVY","SEEDY","SHADY","SHAKY","SHARP",
+    "SHORT","SHOWY","SILKY","SILLY","SLICK","SLIMY","SLOPPY","SMART","SMOKY","SNAKY",
+    "SNAPPY","SNOWY","SOGGY","SOLID","SORRY","SOUPY","SPACY","SPINY","SQUAT","STARK",
+    "STERN","STIFF","STILL","STONY","STOUT","STUFFY","SURLY","SWAMY","SWEET","SWIFT",
+    "TACKY","TAFFY","TANGY","TARDY","TATTY","TAWNY","TEENY","TESTY","THICK","THORNY",
+    "TIPPY","TIPSY","TOFFY","TONAL","TOOTHY","TOUCHY","TOUGH","TUBBY","TUFTY","TURFY",
+    "TWEED","TWILL","ULTRA","UNFIT","UPPER","UPSET","URBAN","VALID","VALUE","VAPID",
+    "VENAL","VEXED","VIVID","VOCAL","VOGUE","VOMIT","WADDY","WAKEN","WARTY","WASTE",
+    "WEEDY","WEIRD","WHINY","WHITE","WHOLE","WINDY","WISPY","WITTY","WOOLY","WORDY",
+    "WORMY","WOOZY","WRATH","YACHT","YUCKY","ZAPPY","ZINGY","ZIPPY","ZESTY","ZONAL"
+  ],
+  6: [
+    "ABLAZE","ABSENT","ABSORB","ACCENT","ACCORD","ACCRUE","ACCUSE","ACHING","ACQUIT","ACROSS",
+    "ADRIFT","ADVENT","ADVICE","AERIAL","AFFORD","AFIELD","AGHAST","AGREED","ALBEIT","ALCOVE",
+    "ALLUDE","ALLURE","ALMOST","ALIGHT","AMBUSH","ANGLER","ANKLET","ANTLER","ARCHLY","ARCTIC",
+    "ARDENT","ARMFUL","ARMORY","ARTFUL","ASCEND","ASPIRE","ASTUTE","ATTEST","AUGUST","AUNTIE",
+    "AVENGE","AVERSE","AVOWAL","BACKED","BANTER","BARELY","BARLEY","BARREL","BARTER","BASKET",
+    "BATTLE","BAUBLE","BEACON","BECKON","BEFALL","BEHALF","BEHOLD","BELFRY","BELONG","BESTOW",
+    "BETRAY","BETTER","BIOPSY","BITTER","BLIGHT","BLOTCH","BLOUSE","BOBCAT","BONNET","BORDER",
+    "BOUNCE","BOUNTY","BRANCH","BRAWNY","BREACH","BREATH","BREEZE","BRIDGE","BRIGHT","BROGUE",
+    "BROKER","BROOCH","BRONZE","BUCKLE","BUDGET","BUMBLE","BURDEN","BURROW","BUTTER","BUTTON",
+    "CACKLE","CANOPY","CASTLE","CAVERN","CENSUS","CHANCE","CHANGE","CHAPEL","CHARGE","CHASTE",
+    "CHATTY","CHERRY","CHISEL","CHROME","CIPHER","CIRCUS","CLARET","CLENCH","CLEVER","CLIENT",
+    "CLIQUE","COBBLE","COFFER","COMBAT","COMEDY","COMELY","COMPEL","CONCUR","CONDOR","CONSUL",
+    "CONVEX","CORNET","COSMOS","COTTON","COUNTY","COUPON","COVERT","CRAFTY","CRAGGY","CRATER",
+    "CRAZED","CRINGE","CRISPY","CRUTCH","CUPOLA","CURFEW","CURSED","CYBORG","DAGGER","DAINTY",
+    "DAMPEN","DANCER","DAPPER","DARKEN","DAWDLE","DAZZLE","DEADLY","DEBRIS","DECADE","DECANT",
+    "DECENT","DECREE","DEFEAT","DEFEND","DEFINE","DEFTLY","DEJECT","DELUGE","DEMURE","DENTAL",
+    "DETOUR","DEVOID","DEVOUR","DIFFER","DIMPLE","DISMAL","DISPEL","DIVERT","DOCKET","DOLLAR",
+    "DONKEY","DOODLE","DOUBLE","DREDGE","DRIVEN","DROWSY","DUFFEL","DUSTER","DYNAMO","EAGLET",
+    "EASILY","EFFIGY","ELAPSE","EMBARK","EMBLEM","EMERGE","EMPIRE","ENDURE","ENGULF","ENIGMA",
+    "ENLIST","ENOUGH","ENRAGE","ENTAIL","ENTICE","ENTOMB","ENTRAP","ENZYME","ESTATE","EVENLY",
+    "EVINCE","EVOLVE","EXCISE","EXEMPT","EXHALE","EXOTIC","EXPIRY","EXTORT","FAMINE","FATHOM",
+    "FAUCET","FAULTY","FELINE","FERVID","FESTAL","FESTER","FICKLE","FIDGET","FIERCE","FIESTA",
+    "FIGURE","FILTER","FINALE","FINERY","FINGER","FISCAL","FLAGON","FLINCH","FLORET","FLOWER",
+    "FLURRY","FOLLOW","FORAGE","FORBID","FOREST","FORMAL","FOSTER","FRINGE","FROSTY","FUDDLE",
+    "FUNGAL","FUNNEL","FUTILE","GADGET","GALLEY","GALLOP","GAMBLE","GARBLE","GARNER","GARNET",
+    "GATHER","GENTLE","GIBBER","GIGGLE","GILDED","GLASSY","GLOBAL","GOBLIN","GOPHER","GOSSIP",
+    "GOTHIC","GOVERN","GRAVEL","GRIEVE","GRIMLY","GROOVE","GROTTO","GROUSE","GRUMPY","GUSHER",
+    "GUTTER","HAMMER","HARBOR","HARKEN","HAZARD","HEADER","HERALD","HERESY","HERMIT","HEROIC",
+    "HINDER","HOARSE","HOBBLE","HOLLOW","HOMAGE","HONCHO","HUNGER","HUNTER","HURTLE","HUSTLE",
+    "IGNITE","IMPEDE","INFEST","INJECT","INLAND","INSIST","INSULT","INTACT","INVADE","INVOKE",
+    "IRONIC","JESTER","JOSTLE","JUMBLE","JUNGLE","JUNIOR","JUSTLY","KENNEL","KERNEL","KETTLE",
+    "KIDNAP","KINDLY","LANCER","LARIAT","LATHER","LAVISH","LEADEN","LETHAL","LIVELY","LIZARD",
+    "LOCKET","LUMBER","LUNACY","LURKER","MANGLE","MANNER","MANTLE","MARBLE","MARVEL","MASCOT",
+    "MAYHEM","MEDDLE","MENTAL","METEOR","METHOD","MIDWAY","MINGLE","MIRROR","MISERY","MISHAP",
+    "MITTEN","MODEST","MOLTEN","MONKEY","MORTAL","MOTIVE","MURMUR","MUSKET","MUSTER","MUTINY",
+    "MUZZLE","MYSTIC","NARROW","NATURE","NEARBY","NECTAR","NEEDLE","NETTLE","NIMBLE","NOBBLE",
+    "NOTION","NOUGAT","NUZZLE","OBJECT","OBSESS","OFFEND","OFFSET","OPPOSE","ORACLE","ORDEAL",
+    "OUTLAW","OUTRUN","OUTWIT","OVERDO","PARDON","PARROT","PATENT","PATROL","PAUNCH","PEBBLE",
+    "PEWTER","PILFER","PIRATE","PLAQUE","PLEDGE","PLURAL","PODIUM","POLITE","PONDER","PORTAL",
+    "POTTER","POWDER","PRAYER","PREACH","PRETTY","PRIORY","PRISON","PROFIT","PROPER","PULPIT",
+    "PUMMEL","PUNDIT","PUPPET","PURPLE","PUTRID","PUZZLE","QUARTZ","RABBLE","RACKET","RADISH",
+    "RAMBLE","RANDOM","RANKLE","RASCAL","RATIFY","RAVINE","REASON","RECALL","RECKON","REMEDY",
+    "REMOTE","RENTAL","RESCUE","RESORT","RESULT","RETAIN","REVEAL","REVERE","REVIVE","RIPPLE",
+    "ROBUST","ROCKET","RODENT","ROTTEN","RUBBER","RUFFLE","RUMBLE","RUSTLE","SADDLE","SAFETY",
+    "SALMON","SAMPLE","SAVAGE","SCENIC","SCORCH","SCOTCH","SCRAWL","SCRIMP","SCURRY","SECTOR",
+    "SENTRY","SERIAL","SERMON","SETTLE","SEVERE","SHANTY","SHIELD","SHIMMY","SHIVER","SHOVEL",
+    "SIMPLE","SISTER","SKETCH","SLEUTH","SLIGHT","SLOPPY","SMUDGE","SNATCH","SNOBBY","SOCIAL",
+    "SOCKET","SOFTEN","SOLEMN","SOOTHE","SPLEEN","SPRAWL","SPRINT","STABLE","STAPLE","STATUE",
+    "STENCH","STICKY","STINGY","STOCKY","STODGY","STOLEN","STRIKE","STRING","STROLL","STRONG",
+    "STUBBY","STUDIO","STUPID","STURDY","SUBTLE","SULTAN","SUMMIT","SUNLIT","SUPPLE","SURELY",
+    "SWERVE","SWITCH","SYMBOL","TANGLE","TENDER","TETHER","TINGLE","TINKER","TOPPLE","TOUCHY",
+    "TRANCE","TREBLE","TROPHY","TROUGH","TRUDGE","TUMBLE","TUNNEL","TURBAN","TURTLE","TUSSLE",
+    "TWITCH","TYRANT","UNFOLD","UNIQUE","UNKIND","UNRULY","UNTOLD","UNVEIL","UPBEAT","USEFUL",
+    "VANISH","VANITY","VARIED","VECTOR","VELVET","VERBAL","VERIFY","VEXING","VIRTUE","VORTEX",
+    "VULGAR","WADDLE","WAFFLE","WARDEN","WARMTH","WARREN","WEASEL","WICKED","WILFUL","WINERY",
+    "WOBBLE","WONDER","WORSEN","WRENCH","WRITHE","YEARLY","YEOMAN","ZEALOT","ZEPHYR","ZIGZAG",
+    "ABLOOM","ABRUPT","ADDLED","ADHERE","ADMIRE","ADROIT","AGEING","AERIAL","AFFORD","ALLEGE",
+    "ALLIED","AMBLED","AMENDS","AMUSED","ANEMIC","ANNEAL","ANNEX","ANOINT","APPALL","APPEAL",
+    "APPEND","ARDOUR","ARGYLE","ARTFUL","AWAKEN","BAFFLED","BEDLAM","BEHAVE","BEWARE","BLAZON",
+    "BLEARY","BLENCH","BRAWL","BRIDLE","BURBLE","CANKER","CHIDED","CHROME","CLOVEN","CODDLE",
+    "COILED","COINED","COILED","COMPEL","CONVEY","COOPER","COPIED","CORSET","CRAVED","CRINGE",
+    "CUDDLE","CURDLE","CUTLET","DAWNED","DECAMP","DECIDE","DENOTE","DEPLOY","DESIRE","DEVOTE",
+    "DIFFER","DILUTE","DIVINE","DREDGE","DRIVEN","EARTHY","EFFECT","EITHER","EMPLOY","ENCAMP",
+    "ENSURE","EXCITE","EXPEND","EXPOSE","FALTER","FATHOM","FIDDLE","FIERCE","FIGURE","FLARED",
+    "FORCED","FOREGO","FORMAL","FOSTER","FROZEN","GAINED","GARISH","GIFTED","GIRDLE","GLITCH",
+    "GLOOMY","GRADED","GRAZED","GUILTY","GUZZLE","HASTEN","HEATED","HOODED","HOWLED","HUMMED",
+    "HUSHED","IMMUNE","IMPART","IMPORT","IMPOSE","IMPURE","INBORN","INDEED","INFIRM","INFORM",
+    "INHALE","INSANE","INSERT","INSIDE","INTEND","INTONE","INVENT","ISLAND","ISSUED","JOGGER",
+    "JUDGED","JITTERY","JOUNCE","JOUSTED","JUMPED","LANCED","LAPSED","LASTED","LEANED","LIFTED",
+    "LIMBER","LINEAR","LINKED","LIPPED","LISPED","LIVELY","LOGGED","LOOPED","LURING","LUSTER",
+    "MALIGN","MASHED","MENDED","MERGED","MERITS","MIDWAY","MISLED","MOANED","MOPPED","MOPING",
+    "MORSEL","MOUSED","MUDDLE","MULLED","NETTED","NIPPED","NOSING","NUDGED","NUMBED","OAFISH",
+    "OBLONG","OPENED","OUSTED","PACKED","PAINED","PAIRED","PARTED","PASTED","PATTED","PEAKED",
+    "PELTED","PENSED","PESTER","PICKED","PINNED","PIRATE","PITTED","PLACED","PLANED","PLAYED",
+    "POPPED","POSTED","PULLED","PURSUE","PUSHED","QUEUED","QUOTED","RAISED","RAMPED","RANGED",
+    "RANKED","RANTED","RASPED","RATHER","RATTED","RAIDED","REELED","RESTED","RIFLED","RINSED",
+    "RISKED","ROILED","ROLLED","ROOTED","ROPING","ROUSED","RUBBED","RUSHED","SAGGED","SAILED",
+    "SALTED","SANDED","SEALED","SEAMED","SEARED","SEIZED","SERVED","SHADED","SHAMED","SHARED",
+    "SHAVED","SHINED","SHOVED","SIFTED","SIGNED","SINGED","SIPPED","SLICED","SLOPED","SMOKED",
+    "SOAKED","SOARED","SORTED","SOUGHT","SOURED","SPIKED","SPREAD","STAGED","STAKED","STARED",
+    "STATED","STAYED","STOLEN","STORED","STOWED","STYLED","SUCKED","SULKED","SUMMED","SURGED",
+    "TAILED","TALKED","TAPPED","TASTED","TESTED","TINTED","TIPPED","TIRED","TOILED","TRACED",
+    "TRADED","TRAILED","TUGGED","TURNED","UNEVEN","UNITED","UNLOAD","UPHELD","USEFUL","VALUED",
+    "VARIED","VERSED","VIEWED","VOICED","WAILED","WAITED","WASHED","WASTED","WELLED","WISHED",
+    "WORKED","YELLED","YIELDS","ZEROED","ZAPPED","ZIPPED"
+  ],
+  7: [
+    "ABANDON","ABASHED","ABDOMEN","ABOLISH","ABSOLVE","ABSTAIN","ACCLAIM","ACCOUNT","ACCUSED",
+    "ACHIEVE","ACQUIRE","ADAPTED","ADDRESS","ADJOURN","ADMIRAL","ADVANCE","AGAINST","AILMENT",
+    "ALERTED","ALTERED","AMALGAM","AMONGST","ANCIENT","ANOTHER","ANXIETY","APPOINT","APPROVE",
+    "ARCHWAY","ARRANGE","ARRIVAL","ATHLETE","AUCTION","AUDITOR","AUGMENT","AUSTERE","AVERAGE",
+    "AVOCADO","BACKLOG","BALANCE","BALLOON","BARGAIN","BASHFUL","BELOVED","BENEATH","BENEFIT",
+    "BERSERK","BLOSSOM","BLUNDER","BOROUGH","BOUNCER","BOYCOTT","BREADTH","BREVITY","BUILDER",
+    "BULWARK","BURNISH","CABINET","CAPTAIN","CAPTURE","CARDIAC","CAREFUL","CARNAGE","CASCADE",
+    "CATALOG","CENTURY","CHARADE","CHARITY","CHEETAH","CLUSTER","COMMAND","COMPETE","COMPLEX",
+    "COMPOST","COMPUTE","CONCEAL","CONCEPT","CONCERN","CONDEMN","CONDUCT","CONQUER","CONSENT",
+    "CONTROL","CONVERT","CORRUPT","COSTUME","COUNSEL","COURAGE","CRAVING","CREATOR","CRUELTY",
+    "CRUSADE","CULTURE","CURIOUS","CURTAIN","DARLING","DAZZLED","DEALING","DECLARE","DECRYPT",
+    "DEVOTED","DIGITAL","DISCORD","DISMISS","DISPLAY","DISTANT","DISTURB","DIVERSE","DYNASTY",
+    "DWINDLE","EARNEST","ECLIPSE","ECONOMY","ELEGANT","ELEMENT","EMOTION","ENCHANT","ENDEMIC",
+    "ENFORCE","ENGRAVE","ENHANCE","EPISODE","ESSENCE","EVIDENT","EXACTLY","EXAMINE","EXAMPLE",
+    "EXHAUST","EXPLAIN","EXPLORE","EXPRESS","EXTREME","FANFARE","FASHION","FEATURE","FICTION",
+    "FLAVOUR","FLATTEN","FLICKER","FLUTTER","FOREIGN","FORSAKE","FORTUNE","FORWARD","FRANTIC",
+    "FREEDOM","FULSOME","FURNACE","GALLANT","GARNISH","GAZETTE","GENERAL","GESTURE","GLORIFY",
+    "GLIMMER","GLISTEN","GONDOLA","GRANITE","GRAPPLE","GRATIFY","GRAVITY","GRIZZLY","GYMNAST",
+    "HABITAT","HANDFUL","HARMONY","HARNESS","HARVEST","HAUNTED","HEADWAY","HISTORY","HOSTILE",
+    "HUSBAND","ICEBERG","IMAGINE","IMPERIL","IMPLORE","IMPRINT","INCLUDE","INFLICT","INHABIT",
+    "INSIGHT","INSTEAD","INTENSE","INTRUDE","ISOLATE","JAVELIN","JOURNEY","JUSTICE","KEEPING",
+    "KINDRED","KINGDOM","LANTERN","LARGELY","LATTICE","LEISURE","LIBERAL","LINEAGE","LITERAL",
+    "MACHINE","MAGICAL","MAGNIFY","MAJESTY","MASSIVE","MAXIMUM","MEASURE","MELTING","MENTION",
+    "MIGRATE","MISSION","MIXTURE","MODESTY","MONITOR","MYSTERY","NARRATE","NATURAL","NETWORK",
+    "NEUTRAL","NOTABLE","NOURISH","NULLIFY","OBSCURE","OBSERVE","OBVIOUS","OPERATE","OPINION",
+    "ORBITAL","ORCHARD","OUTRAGE","OUTSIDE","OVERALL","OVERLAP","OVERRUN","PACKAGE","PASSAGE",
+    "PASSION","PASTIME","PATIENT","PATTERN","PILGRIM","PIONEER","PLACATE","POPULAR","POVERTY",
+    "PRESENT","PREVENT","PRIVACY","PROCESS","PRODIGY","PROMISE","PROSPER","PROTECT","PROVIDE",
+    "PROVOKE","PUBLISH","PURSUIT","QUALIFY","QUARTER","QUICKLY","QUIETLY","RAPTURE","REALITY",
+    "RECEIVE","RECRUIT","REFLECT","REJOICE","RELATED","RELEASE","RELIEVE","REPLACE","RESOLVE",
+    "RETREAT","REUNION","REVENUE","REVERSE","REVIVAL","ROYALTY","SCATTER","SCENERY","SECTION",
+    "SEGMENT","SILENCE","SINCERE","SOCIETY","SOLDIER","SORCERY","SPECIAL","SPECIES","STELLAR",
+    "STRETCH","STUDENT","SUBLIME","SUCCESS","SUPPOSE","SURFACE","SURPASS","SURVIVE","SUSTAIN",
+    "SWALLOW","TEACHER","TENSION","TEXTURE","THUNDER","TONIGHT","TORMENT","TOWARDS","TRAITOR",
+    "TRIUMPH","TROUBLE","UNCOVER","UNDERGO","UNIFIED","UNIFORM","UNKEMPT","UNLEASH","UNUSUAL",
+    "UPRIGHT","UTILITY","VACANCY","VALIANT","VEHICLE","VENTURE","VERSION","VESTIGE","VILLAGE",
+    "VIOLENT","VISIBLE","VISITOR","VITAMIN","WARFARE","WARLOCK","WARNING","WARRIOR","WESTERN",
+    "WHISPER","WINDING","WITHOUT","WORRIED","WORSHIP","WRESTLE","WRITTEN","YOUNGER","ZEALOUS",
+    "ABUSING","ACCLAIM","ACCRUED","ACCUSED","ACHING","ACQUIRE","ADAPTED","ADDRESS","ADJUNCT",
+    "ADOPTED","ADORNED","ADVANCE","ADVERSE","ADVISED","AEROBIC","AFFIXED","AGAINST","AGELESS",
+    "AILMENT","AIRPORT","ALARMED","ALLEGED","ALLOWED","ALTERED","ALERTED","AMAZING","AMBITION",
+    "AMBLING","AMENDED","ANGULAR","ANNOYED","ANXIOUS","APPLIED","ARISING","ARMORED","AROUSED",
+    "ARRIVED","ARTICLE","ASCETIC","ASSUMED","ASSURED","ATTIRED","AUDIBLE","AVARICE","AVERAGE",
+    "BANKING","BEARING","BEATING","BECOMES","BEDROCK","BETWEEN","BINDING","BLANKET","BURNING",
+    "BUSTLED","BYLINED","CANTEEN","CARRIED","CEILING","CENTRAL","CERTAIN","CHARGED","CHECKED",
+    "CLAIMED","CLEANED","CLEARED","CLOSEST","CLOSELY","COASTAL","CRAMMED","CRAFTED","CLAIMED",
+    "COURAGE","CREATED","CROSSED","CRUCIAL","DAMAGED","DECIDED","DEFENSE","DELAYED","DENYING",
+    "DEFYING","DESIRED","DERIVED","DEVOTED","DRAFTED","DRAINED","DRAWING","DREAMED","DRESSED",
+    "ENABLED","ENGAGED","ENOUGH","ENSURED","ENTERED","ENVIED","ESCAPED","ETERNAL","EVOLVED",
+    "EXACTLY","EXCITED","EXISTED","FAILING","FALLING","FASTEST","FILLING","FINALLY","FOCUSED",
+    "FINDING","FONDLED","FORCING","FORMING","FORGING","GAINING","GATHERED","GETTING","GIFTED",
+    "GLANCED","GLOWING","GRANTED","GRASPED","GROWING","HANDLED","HANGING","HELPING","HOLDING",
+    "HOPEFUL","HURRIED","INITIAL","INJURED","INVITED","INWARDS","JOINTED","KINETIC","KNOWING",
+    "LACKING","LANDING","LEADING","LEAPING","LEARNED","LEAVING","LIBERAL","LIFTING","LINKING",
+    "LISTING","LOADING","LOOKING","LOOSENED","LOWERED","LUCKIER","MANAGED","MAPPING","MATCHED",
+    "MEETING","MERGING","MISSING","MOUNTED","MUSICAL","NATURAL","NEEDED","NOTICED","OFFERED",
+    "OPENING","OPPOSED","ORDERED","PAINFUL","PAUSING","PEELING","PERFECT","PLACED","PLANNED",
+    "POURING","PRAISED","PRESENT","PRINTED","PULLING","PUSHING","RAISING","RAPIDLY","READING",
+    "REACHED","REFINED","RENEWED","REPLIED","RESISTED","RESTING","ROLLING","RUNNING","RUSHING",
+    "SADNESS","SEEKING","SENSORY","SETTING","SHARING","SHOWING","SKATING","SKILLED","SLIPPED",
+    "SOLVING","SOMEONE","SORTING","SEEKING","STARTED","STAYING","STEPPED","STOPPED","STUDIED",
+    "TALKING","TELLING","TESTING","THROUGH","TIPPING","TOUCHED","TRAINED","TURNING","TWISTED",
+    "UNARMED","UNAWARE","UNCLEAR","UNFOLDED","UNKNOWN","UNLINED","UNLUCKY","UNNAMED","UNWOUND",
+    "UPDATED","UTTERED","WAITING","WALKING","WANTING","WATCHED","WILLING","WINNING","WISHING",
+    "WORKING","WOUNDED","YEARNED","YIELDED","ZOOMING"
+  ]
+};
+
+// Scoring ladder: 2, 4, 6, 10 — push your luck
+const POINTS = { 4: 2, 5: 4, 6: 6, 7: 10 };
+const CLOCK  = { 4: 8, 5: 10, 6: 15, 7: 20 };
+const LEVELS = [4, 5, 6, 7]; // must climb in order
+
+// ─── Design tokens ────────────────────────────────────────────────────────────
+const C = {
+  cream:      "#FFF8F0",
+  ink:        "#1C1917",
+  coral:      "#F4623A",
+  teal:       "#4ECBA6",
+  yellow:     "#F9C846",
+  surface:    "#EDE8DF",
+  muted:      "#A89F96",
+  border:     "#D9D2C8",
+  white:      "#FFFFFF",
+  red:        "#F08050",
+  forest:     "#2D6A4F",
+  forest5:    "#5BA07A",  // light sage — Quick / 5 worder
+  forest6:    "#3D7A5E",  // mid forest — Medium / 6 worder
+  forest7:    "#1E5C3A",  // deep green — Maximum / 7 worder
+  forestPlay: "#4A8C68",  // play button green
+};
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+function scramble(word) {
+  let arr = word.split(""), tries = 0;
+  do {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    tries++;
+  } while (arr.join("") === word && tries < 20);
+  return arr.join("");
+}
+function getDailyWord(diff) {
+  // Use local date to avoid UTC midnight boundary issues
+  const d = new Date();
+  const dayNum = d.getFullYear() * 10000 + (d.getMonth()+1) * 100 + d.getDate();
+  // Use a simple hash of the day number for consistent ordering
+  const idx = ((dayNum * 2654435761) >>> 0) % WORDS[diff].length;
+  return WORDS[diff][idx];
+}
+function getDayKey() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+}
+function loadStats() {
+  try { const r = localStorage.getItem("altered_stats"); return r ? JSON.parse(r) : { totalScore:0, streak:0, lastDay:null, history:[], diffCounts:{5:0,6:0,7:0} }; }
+  catch { return { totalScore:0, streak:0, lastDay:null, history:[], diffCounts:{5:0,6:0,7:0} }; }
+}
+function saveStats(s) { localStorage.setItem("altered_stats", JSON.stringify(s)); }
+function loadTodaySession() {
+  try {
+    const r = localStorage.getItem("altered_session_" + getDayKey());
+    const defaults = { bankedPoints:0, climbLevel:4, busted:false, completed:false, funPlayed:[], practiceIdx:{4:0,5:0,6:0,7:0} };
+    return r ? { ...defaults, ...JSON.parse(r) } : defaults;
+  }
+  catch { return { bankedPoints:0, climbLevel:4, busted:false, completed:false, funPlayed:[], practiceIdx:{4:0,5:0,6:0,7:0} }; }
+}
+function saveTodaySession(s) { localStorage.setItem("altered_session_" + getDayKey(), JSON.stringify(s)); }
+
+// ─── Logo ─────────────────────────────────────────────────────────────────────
+const LOGO_GREEN = "#2D6A4F";
+const LOGO_TEAL  = "#4ECBA6";
+
+// slight rotations per letter to suggest a scramble, 0 = no rotation
+const LOGO_ROTATIONS = [0, -8, 5, 0, -5, 7, -4];
+const LOGO_OFFSETS   = [0,  4, -3, 0,  5, -4,  3]; // vertical nudge in px
+
+function AlteredLogo({ size = "lg" }) {
+  const letters = ["A","L","T","E","R","E","D"];
+  const fs  = size === "lg" ? 42 : size === "md" ? 28 : 20;
+  const gap = size === "lg" ? 5 : 3;
+  const br  = size === "lg" ? 9 : 6;
+  return (
+    <div style={{ display:"flex", alignItems:"center", gap, userSelect:"none", padding:"8px 4px" }}>
+      {letters.map((l, i) => {
+        const isA  = i === 0;
+        const rot  = LOGO_ROTATIONS[i];
+        const nudge = LOGO_OFFSETS[i];
+        return (
+          <div key={i} style={{
+            width: fs * 0.82, height: fs * 1.12,
+            background: isA ? LOGO_TEAL : LOGO_GREEN,
+            borderRadius: br,
+            display:"flex", alignItems:"center", justifyContent:"center",
+            fontSize: fs * 0.64, fontWeight:900,
+            color: "#FFFFFF",
+            fontFamily:"'Helvetica Neue', Helvetica, Arial, sans-serif",
+            flexShrink: 0,
+            transform: `rotate(${rot}deg) translateY(${nudge}px)`,
+            boxShadow: isA
+              ? `0 4px 10px rgba(78,203,166,0.35), 0 2px 4px rgba(0,0,0,0.12)`
+              : `0 4px 8px rgba(45,106,79,0.25), 0 2px 3px rgba(0,0,0,0.10)`,
+          }}>
+            {l}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// ─── LetterTile ───────────────────────────────────────────────────────────────
+function LetterTile({ letter, revealed, size = "md" }) {
+  const dim  = size === "sm" ? 38 : 50;
+  const tall = size === "sm" ? 46 : 58;
+  const fs   = size === "sm" ? 19 : 25;
+  return (
+    <div style={{
+      width:dim, height:tall,
+      background: revealed ? "#FFF0E8" : C.white,
+      border: "2.5px solid " + (revealed ? C.coral : C.border),
+      borderRadius:10,
+      display:"flex", alignItems:"center", justifyContent:"center",
+      fontSize:fs, fontWeight:900,
+      color: revealed ? C.ink : C.ink,
+      fontFamily:"'Helvetica Neue', Helvetica, Arial, sans-serif",
+      transition:"background 0.25s, border-color 0.25s",
+      boxShadow: revealed ? "0 2px 12px #F4623A33" : "0 2px 4px #00000010",
+      userSelect:"none", flexShrink:0,
+    }}>{letter}</div>
+  );
+}
+
+// ─── ClockRing ────────────────────────────────────────────────────────────────
+function ClockRing({ timeLeft, total }) {
+  const r = 42, circ = 2 * Math.PI * r;
+  const pct = timeLeft / total;
+  const color = timeLeft > total*0.4 ? C.teal : timeLeft > total*0.2 ? C.yellow : C.coral;
+  return (
+    <svg width={106} height={106} viewBox="0 0 106 106">
+      <circle cx={53} cy={53} r={r} fill="none" stroke={C.border} strokeWidth={8}/>
+      <circle cx={53} cy={53} r={r} fill="none" stroke={color} strokeWidth={8}
+        strokeDasharray={circ} strokeDashoffset={circ*(1-pct)}
+        strokeLinecap="round" transform="rotate(-90 53 53)"
+        style={{ transition:"stroke-dashoffset 0.25s linear, stroke 0.4s" }}
+      />
+      <text x={53} y={60} textAnchor="middle" fill={color}
+        fontSize={28} fontWeight={900} fontFamily="'Helvetica Neue', Helvetica, Arial, sans-serif">{timeLeft}</text>
+    </svg>
+  );
+}
+
+
+// ─── Icons ────────────────────────────────────────────────────────────────────
+function IconTile({ children, color, size = 56 }) {
+  return (
+    <div style={{
+      width: size, height: size, borderRadius: size * 0.22,
+      background: color, display: "flex", alignItems: "center",
+      justifyContent: "center", flexShrink: 0,
+      boxShadow: "0 3px 10px ${color}55",
+    }}>
+      {children}
+    </div>
+  );
+}
+
+// Trophy — correct answer
+function IconWin({ size = 56 }) {
+  const s = size * 0.52;
+  return (
+    <IconTile color={C.teal} size={size}>
+      <svg width={s} height={s} viewBox="0 0 24 24" fill="none">
+        <path d="M6 3h12v9a6 6 0 01-12 0V3z" fill="white" fillOpacity="0.9"/>
+        <path d="M3 5h3M21 5h-3" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+        <rect x="9" y="18" width="6" height="2" rx="1" fill="white"/>
+        <rect x="7" y="20" width="10" height="2" rx="1" fill="white"/>
+        <path d="M9 12l2 2 4-4" stroke={C.teal} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+    </IconTile>
+  );
+}
+
+// Clock — time up
+function IconTimeout({ size = 56 }) {
+  const s = size * 0.52;
+  return (
+    <IconTile color={C.coral} size={size}>
+      <svg width={s} height={s} viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="13" r="8" stroke="white" strokeWidth="2"/>
+        <path d="M12 9v4l2.5 2.5" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+        <path d="M9 2h6M12 2v3" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+        <path d="M19 5l1-1" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+      </svg>
+    </IconTile>
+  );
+}
+
+// X mark — wrong answer
+function IconWrong({ size = 56 }) {
+  const s = size * 0.52;
+  return (
+    <IconTile color="#E89040" size={size}>
+      <svg width={s} height={s} viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="12" r="9" stroke="white" strokeWidth="2"/>
+        <path d="M9 9l6 6M15 9l-6 6" stroke="white" strokeWidth="2.2" strokeLinecap="round"/>
+      </svg>
+    </IconTile>
+  );
+}
+
+// Checkmark — correct pill / done state
+function IconCheck({ size = 16, color = C.teal }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 16 16" fill="none">
+      <path d="M3 8l3.5 3.5L13 5" stroke={color} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  );
+}
+
+// Step icons for How To Play
+function IconTarget({ size = 28 }) {
+  return (
+    <div style={{ width:size, height:size, borderRadius:size*0.25, background:C.coral,
+      display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+      <svg width={size*0.58} height={size*0.58} viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="12" r="9" stroke="white" strokeWidth="2"/>
+        <circle cx="12" cy="12" r="5" stroke="white" strokeWidth="2"/>
+        <circle cx="12" cy="12" r="1.5" fill="white"/>
+      </svg>
+    </div>
+  );
+}
+function IconShuffle({ size = 28 }) {
+  return (
+    <div style={{ width:size, height:size, borderRadius:size*0.25, background:C.teal,
+      display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+      <svg width={size*0.58} height={size*0.58} viewBox="0 0 24 24" fill="none">
+        <path d="M16 3l4 4-4 4" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+        <path d="M4 7h5a4 4 0 014 4v0a4 4 0 004 4h3" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+        <path d="M16 17l4-4-4-4" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" opacity="0"/>
+        <path d="M4 17h5" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+        <path d="M13 17h3l4-4" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+    </div>
+  );
+}
+function IconStop({ size = 28 }) {
+  return (
+    <div style={{ width:size, height:size, borderRadius:size*0.25, background:LOGO_GREEN,
+      display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+      <svg width={size*0.52} height={size*0.52} viewBox="0 0 24 24" fill="none">
+        <rect x="5" y="5" width="14" height="14" rx="2" fill="white"/>
+      </svg>
+    </div>
+  );
+}
+function IconKeyboard({ size = 28 }) {
+  return (
+    <div style={{ width:size, height:size, borderRadius:size*0.25, background:"#E89040",
+      display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+      <svg width={size*0.62} height={size*0.62} viewBox="0 0 24 24" fill="none">
+        <rect x="2" y="6" width="20" height="13" rx="2" stroke="white" strokeWidth="2"/>
+        <path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M8 14h8" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+      </svg>
+    </div>
+  );
+}
+function IconStar({ size = 28 }) {
+  return (
+    <div style={{ width:size, height:size, borderRadius:size*0.25, background:C.yellow,
+      display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+      <svg width={size*0.58} height={size*0.58} viewBox="0 0 24 24" fill="none">
+        <path d="M12 2l3 6 7 1-5 5 1 7-6-3-6 3 1-7L2 9l7-1 3-6z" fill={C.ink} fillOpacity="0.85"/>
+      </svg>
+    </div>
+  );
+}
+
+
+// ─── Confetti celebration ─────────────────────────────────────────────────────
+function Confetti({ active }) {
+  if (!active) return null;
+  const pieces = Array.from({ length: 32 }, (_, i) => ({
+    id: i,
+    x: Math.random() * 100,
+    delay: Math.random() * 0.6,
+    dur: 1.2 + Math.random() * 0.8,
+    size: 7 + Math.random() * 8,
+    color: [C.teal, C.coral, C.yellow, LOGO_GREEN, "#fff"][i % 5],
+    rotate: Math.random() * 360,
+    drift: (Math.random() - 0.5) * 60,
+  }));
+  return (
+    <div style={{
+      position:"fixed", top:0, left:0, width:"100%", height:"100%",
+      pointerEvents:"none", zIndex:999, overflow:"hidden",
+    }}>
+      {pieces.map(p => (
+        <div key={p.id} style={{
+          position:"absolute",
+          left: p.x + "%",
+          top: "-20px",
+          width: p.size,
+          height: p.size * 0.6,
+          background: p.color,
+          borderRadius: 2,
+          animation: `confettiFall ${p.dur}s ${p.delay}s ease-in forwards`,
+          transform: `rotate(${p.rotate}deg)`,
+        }}/>
+      ))}
+      <style>{`
+        @keyframes confettiFall {
+          0%   { transform: translateY(0) translateX(0) rotate(0deg); opacity:1; }
+          100% { transform: translateY(100vh) translateX(${60}px) rotate(720deg); opacity:0; }
+        }
+      `}</style>
+    </div>
+  );
+}
+
+// ─── Animated tile reveal (bounces into correct order) ────────────────────────
+function AnimatedWordReveal({ word, active }) {
+  const [step, setStep] = useState(-1);
+  useEffect(() => {
+    if (!active) { setStep(-1); return; }
+    setStep(0);
+    let i = 0;
+    const iv = setInterval(() => {
+      i++;
+      setStep(i);
+      if (i >= word.length) clearInterval(iv);
+    }, 160);
+    return () => clearInterval(iv);
+  }, [active, word]);
+
+  return (
+    <div style={{ display:"flex", gap:6, justifyContent:"center", flexWrap:"nowrap" }}>
+      {word.split("").map((l, i) => {
+        const revealed = step > i;
+        return (
+          <div key={i} style={{
+            width: word.length > 6 ? 38 : 50,
+            height: word.length > 6 ? 46 : 58,
+            background: revealed ? LOGO_GREEN : C.surface,
+            border: "2.5px solid " + (revealed ? LOGO_GREEN : C.border),
+            borderRadius: 10, display:"flex", alignItems:"center", justifyContent:"center",
+            fontSize: word.length > 6 ? 19 : 25, fontWeight:900,
+            color: revealed ? C.white : "transparent",
+            fontFamily:"'Helvetica Neue', Helvetica, Arial, sans-serif",
+            flexShrink:0,
+            transform: revealed ? "translateY(0) scale(1)" : "translateY(-8px) scale(0.85)",
+            transition: "all 0.25s cubic-bezier(0.34,1.56,0.64,1)",
+            boxShadow: revealed ? "0 4px 10px rgba(45,106,79,0.3)" : "none",
+          }}>
+            {revealed ? l : ""}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// ─── DiffPill ─────────────────────────────────────────────────────────────────
+function DiffPill({ diff, session }) {
+  const played = session.played.includes(diff);
+  const isFirst = session.firstDiff === diff;
+  const won = isFirst && session.firstSuccess;
+  const lost = isFirst && session.firstSuccess === false;
+  const diffGreen = { 5: C.forest5, 6: C.forest6, 7: C.forest7 }[diff];
+  const bg = won ? C.teal : lost ? "#F08050" : played ? C.surface : diffGreen || C.white;
+  const border = won ? C.teal : lost ? "#F08050" : played ? C.border : diffGreen || C.border;
+  const textColor = won||lost ? C.white : played ? C.muted : C.white;
+  return (
+    <div style={{
+      display:"flex", flexDirection:"column", alignItems:"center",
+      background:bg, border:"2px solid "+border, borderRadius:14,
+      padding:"10px 14px", gap:2, minWidth:60,
+      boxShadow:"0 2px 8px #00000010",
+    }}>
+      <span style={{ fontSize:20, fontWeight:900, color:textColor, fontFamily:"'Helvetica Neue', Helvetica, Arial, sans-serif" }}>{diff}</span>
+      <span style={{ fontSize:10, color:textColor, opacity:0.8, fontWeight:600 }}>
+        {won ? <IconCheck size={13} color={C.white}/> : lost ? "✗" : played ? "done" : `${POINTS[diff]}pt`}
+      </span>
+    </div>
+  );
+}
+
+// ─── Btn helper ───────────────────────────────────────────────────────────────
+function Btn({ children, onClick, variant="primary", style:extra={} }) {
+  const variants = {
+    primary:   { background:C.coral,   color:C.white,   border:"none" },
+    secondary: { background:C.surface, color:C.ink,     border:"2px solid "+C.border },
+    teal:      { background:C.teal,    color:C.white,   border:"none" },
+    ghost:     { background:"transparent", color:C.muted, border:"none" },
+    outline:   { background:C.white,   color:C.coral,   border:"2px solid "+C.coral },
+  };
+  return (
+    <button onClick={onClick} style={{
+      ...variants[variant],
+      borderRadius:14, fontFamily:"'Helvetica Neue', Helvetica, Arial, sans-serif", fontWeight:700,
+      fontSize:16, padding:"14px 28px", cursor:"pointer",
+      boxShadow: variant==="primary" ? "0 4px 16px #F4623A44" : "none",
+      transition:"opacity 0.15s, transform 0.1s",
+      ...extra,
+    }}
+    onMouseOver={e=>e.currentTarget.style.opacity="0.88"}
+    onMouseOut={e=>e.currentTarget.style.opacity="1"}
+    >{children}</button>
+  );
+}
+
+// ─── Page shell ───────────────────────────────────────────────────────────────
+function Page({ children, center=true }) {
+  return (
+    <div style={{
+      minHeight:"100vh", background:C.cream,
+      display:"flex", flexDirection:"column",
+      alignItems:"center", justifyContent: center ? "center" : "flex-start",
+      padding:"28px 20px", fontFamily:"'Helvetica Neue', Helvetica, Arial, sans-serif",
+      boxSizing:"border-box",
+    }}>{children}</div>
+  );
+}
+
+function Card({ children, style:extra={} }) {
+  return (
+    <div style={{
+      background:C.white, borderRadius:20, padding:"22px 24px",
+      border:"1.5px solid "+C.border, boxShadow:"0 4px 20px #00000010",
+      width:"100%", maxWidth:360, boxSizing:"border-box",
+      ...extra,
+    }}>{children}</div>
+  );
+}
+
+// ─── Main ─────────────────────────────────────────────────────────────────────
+export default function AlteredGame() {
+  // ── Core state ──────────────────────────────────────────────────────────
+  const [screen, setScreen]       = useState("home");
+  const [difficulty, setDiff]     = useState(null);
+  const [word, setWord]           = useState("");
+  const [jumbled, setJumbled]     = useState("");
+  const [timeLeft, setTimeLeft]   = useState(8);
+  const [stopped, setStopped]     = useState(false);
+  const [guess, setGuess]         = useState("");
+  const [outcome, setOutcome]     = useState(null); // "correct"|"wrong"|"timeout"
+  const [revealed, setRevealed]   = useState(false);
+  const [revealAnim, setRevealAnim] = useState(false);
+  const [celebrating, setCelebrating] = useState(false);
+  const [isPractice, setIsPractice] = useState(false);
+  const [stats, setStats]         = useState(loadStats);
+  const [session, setSession]     = useState(loadTodaySession);
+
+  const timerRef  = useRef(null);
+  const inputRef  = useRef(null);
+
+  // ── Practice sets ───────────────────────────────────────────────────────
+  const PRACTICE_SETS = {
+    4: ["GLOW","WRAP","JUMP"],
+    5: ["STORM","BRAVE","PLUMB"],
+    6: ["CASTLE","BRIDGE","ZEPHYR"],
+    7: ["LANTERN","MYSTERY","PILGRIM"],
+  };
+
+  // ── Derived climb state ─────────────────────────────────────────────────
+  const currentLevel   = session.climbLevel || 4;       // next level to play
+  const bankedPoints   = session.bankedPoints || 0;
+  const busted         = session.busted || false;
+  const climbComplete  = session.completed || false;
+  const funPlayed      = session.funPlayed || [];
+  const totalPossible  = POINTS[4]+POINTS[5]+POINTS[6]+POINTS[7]; // 22
+  const levelsDone     = LEVELS.filter(l => l < currentLevel);    // completed levels
+  const cumulativeAtLevel = (lvl) => LEVELS.filter(l => l <= lvl).reduce((s,l) => s+POINTS[l], 0);
+
+  // ── Start a real game level ─────────────────────────────────────────────
+  const startLevel = useCallback((diff) => {
+    const chosen = getDailyWord(diff);
+    setDiff(diff); setWord(chosen); setJumbled(scramble(chosen));
+    setTimeLeft(CLOCK[diff]); setStopped(false);
+    setGuess(""); setOutcome(null); setRevealed(false);
+    setRevealAnim(false); setCelebrating(false);
+    setIsPractice(false);
+    setScreen("game");
+  }, []);
+
+  // ── Start a practice round ──────────────────────────────────────────────
+  const startPractice = useCallback((diff = 4) => {
+    const idx = session.practiceIdx?.[diff] || 0;
+    const sets = PRACTICE_SETS[diff];
+    if (idx >= sets.length) { setScreen("practicelimit"); return; }
+    const chosen = sets[idx];
+    setDiff(diff); setWord(chosen); setJumbled(scramble(chosen));
+    setTimeLeft(CLOCK[diff]); setStopped(false);
+    setGuess(""); setOutcome(null); setRevealed(false);
+    setRevealAnim(false); setCelebrating(false);
+    setIsPractice(true);
+    setScreen("game");
+  }, [session]);
+
+  // ── Countdown ───────────────────────────────────────────────────────────
+  useEffect(() => {
+    if (screen !== "game" || stopped) return;
+    if (timeLeft <= 0) { handleFinish("timeout"); return; }
+    timerRef.current = setTimeout(() => setTimeLeft(t => t-1), 1000);
+    return () => clearTimeout(timerRef.current);
+  }, [screen, stopped, timeLeft]);
+
+  useEffect(() => {
+    if (screen === "typing" && inputRef.current) inputRef.current.focus();
+  }, [screen]);
+
+  function handleStop() {
+    clearTimeout(timerRef.current);
+    setStopped(true);
+    setScreen("typing");
+  }
+
+  function handleGuessSubmit() {
+    handleFinish(guess.trim().toUpperCase() === word ? "correct" : "wrong");
+  }
+
+  // ── Core finish logic ───────────────────────────────────────────────────
+  function handleFinish(result) {
+    const correct = result === "correct";
+    setOutcome(result);
+
+    // Practice: just increment counter and show result
+    if (isPractice) {
+      const ns = { ...session };
+      ns.practiceIdx = { ...(ns.practiceIdx || {4:0,5:0,6:0,7:0}) };
+      ns.practiceIdx[difficulty] = (ns.practiceIdx[difficulty] || 0) + 1;
+      saveTodaySession(ns); setSession(ns);
+      setScreen("result");
+      return;
+    }
+
+    const ns = { ...session };
+
+    if (correct) {
+      // Solved — celebrate, update streak
+      setCelebrating(true);
+      setTimeout(() => setCelebrating(false), 2400);
+      const today = getDayKey();
+      const yesterday = new Date(Date.now()-86400000).toISOString().split("T")[0];
+      const newStats = { ...stats };
+      if (newStats.lastDay !== today) {
+        newStats.streak = newStats.lastDay === yesterday ? (newStats.streak||0)+1 : 1;
+        newStats.lastDay = today;
+      }
+      // Move to next level (don\'t bank yet — player chooses)
+      ns.climbLevel = difficulty + 1;
+      if (difficulty === 7) {
+        // Completed the whole climb!
+        ns.bankedPoints = cumulativeAtLevel(7);
+        ns.completed = true;
+        newStats.totalScore = (newStats.totalScore||0) + ns.bankedPoints;
+        newStats.diffCounts = { ...(newStats.diffCounts||{4:0,5:0,6:0,7:0}) };
+        newStats.diffCounts[7] = (newStats.diffCounts[7]||0) + 1;
+        saveStats(newStats); setStats(newStats);
+      }
+      saveStats(newStats); setStats(newStats);
+    } else {
+      // Busted — lose all points, keep streak (streak updated on first correct)
+      ns.busted = true;
+      ns.bankedPoints = 0;
+    }
+
+    saveTodaySession(ns); setSession(ns);
+    setScreen("result");
+  }
+
+  // ── Bank points and stop climbing ───────────────────────────────────────
+  function handleBank() {
+    const earned = cumulativeAtLevel(difficulty);
+    const ns = { ...session };
+    ns.bankedPoints = earned;
+    ns.completed = true; // done climbing for today
+
+    const newStats = { ...stats };
+    newStats.totalScore = (newStats.totalScore||0) + earned;
+    newStats.diffCounts = { ...(newStats.diffCounts||{4:0,5:0,6:0,7:0}) };
+    newStats.diffCounts[difficulty] = (newStats.diffCounts[difficulty]||0) + 1;
+    saveStats(newStats); setStats(newStats);
+    saveTodaySession(ns); setSession(ns);
+    setScreen("banked");
+  }
+
+  // ── Play remaining levels for fun ───────────────────────────────────────
+  function startFun(diff) {
+    const chosen = getDailyWord(diff);
+    setDiff(diff); setWord(chosen); setJumbled(scramble(chosen));
+    setTimeLeft(CLOCK[diff]); setStopped(false);
+    setGuess(""); setOutcome(null); setRevealed(false);
+    setRevealAnim(false); setCelebrating(false);
+    setIsPractice(false);
+    setScreen("game_fun");
+  }
+
+  const tileSize = difficulty >= 7 ? "sm" : difficulty === 6 ? "sm" : "md";
+  const remainingFun = LEVELS.filter(l => l > (busted ? currentLevel-1 : difficulty || currentLevel-1) && !funPlayed.includes(l));
+
+  // ── Shared tile row ─────────────────────────────────────────────────────
+  function TileRow({ word: w, size }) {
+    const sz = size || (w?.length >= 7 ? "sm" : w?.length === 6 ? "sm" : "md");
+    return (
+      <div style={{ display:"flex", gap:sz==="sm"?5:8, flexWrap:"nowrap", justifyContent:"center" }}>
+        {(w||"").split("").map((l,i) => <LetterTile key={i} letter={l} size={sz}/>)}
+      </div>
+    );
+  }
+
+  // ── Climb progress bar ─────────────────────────────────────────────────
+  function ClimbBar({ currentDiff, banked, busted: isBusted }) {
+    return (
+      <div style={{ width:"100%", maxWidth:360, margin:"0 auto" }}>
+        <div style={{ display:"flex", gap:8, justifyContent:"center", alignItems:"flex-end" }}>
+          {LEVELS.map((lvl, i) => {
+            const done   = lvl < (currentDiff || currentLevel);
+            const active = lvl === (currentDiff || currentLevel) && !isBusted;
+            const lost   = isBusted && lvl >= currentLevel;
+            const tileColor = done ? C.teal : active ? C.coral : lost ? "#E0C0B8" : C.surface;
+            const textColor = done || active ? C.white : lost ? "#C09090" : C.muted;
+            const shadow = done
+              ? "0 3px 8px rgba(78,203,166,0.35), 0 1px 3px rgba(0,0,0,0.10)"
+              : active
+              ? "0 4px 12px rgba(244,98,58,0.35), 0 2px 4px rgba(0,0,0,0.12)"
+              : "0 2px 4px rgba(0,0,0,0.07)";
+
+            return (
+              <div key={lvl} style={{ flex:1, display:"flex", flexDirection:"column", alignItems:"center", gap:6 }}>
+                {/* Tile */}
+                <div style={{
+                  width:"100%", maxWidth:72,
+                  background: tileColor,
+                  borderRadius:10,
+                  padding:"8px 4px 6px",
+                  boxShadow: shadow,
+                  transition:"background 0.35s, box-shadow 0.35s",
+                  textAlign:"center",
+                }}>
+                  <div style={{
+                    fontSize:20, fontWeight:900, color:textColor, lineHeight:1,
+                    fontFamily:"'Helvetica Neue', Helvetica, Arial, sans-serif",
+                  }}>{lvl}</div>
+                  <div style={{
+                    fontSize:9, fontWeight:700, color:textColor, opacity:0.85,
+                    marginTop:3, letterSpacing:0.3,
+                    fontFamily:"'Helvetica Neue', Helvetica, Arial, sans-serif",
+                    lineHeight:1.3,
+                  }}>letter<br/>word</div>
+                </div>
+                {/* Points label below tile */}
+                <div style={{
+                  fontSize:10, fontWeight:700,
+                  color: done ? C.teal : active ? C.coral : C.muted,
+                }}>
+                  {POINTS[lvl]}pt
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
+
+  // ════════════════════════════════════════════════════════════════════════
+  // SCREENS
+  // ════════════════════════════════════════════════════════════════════════
+
+  // ── PRACTICE LIMIT ──────────────────────────────────────────────────────
+  if (screen === "practicelimit") return (
+    <Page>
+      <AlteredLogo size="md"/>
+      <div style={{ marginTop:20, marginBottom:10 }}><IconStop size={52}/></div>
+      <h2 style={{ color:C.ink, fontSize:20, margin:"0 0 8px", fontWeight:800 }}>That's all the practice for today!</h2>
+      <p style={{ color:C.muted, fontSize:13, textAlign:"center", maxWidth:270, lineHeight:1.6, margin:"0 0 20px" }}>
+        You've used all 3 practice rounds. Come back tomorrow for fresh ones — or jump into the real game!
+      </p>
+      <div style={{ display:"flex", gap:10 }}>
+        <Btn onClick={() => setScreen("home")} variant="primary">Play for real →</Btn>
+        <Btn onClick={() => setScreen("home")} variant="ghost">Home</Btn>
+      </div>
+    </Page>
+  );
+
+  // ── HOME ────────────────────────────────────────────────────────────────
+  if (screen === "home") {
+    const canClimb = !busted && !climbComplete && currentLevel <= 7;
+    return (
+      <Page>
+        <div style={{ marginBottom:8 }}><AlteredLogo size="lg"/></div>
+        <p style={{ color:C.muted, fontSize:14, margin:"8px 0 20px", textAlign:"center", lineHeight:1.6, maxWidth:280 }}>
+          Unscramble the word. Climb the ladder.<br/>Bank your points — or risk it all.
+        </p>
+
+        {/* Climb progress */}
+        <div style={{ width:"100%", maxWidth:340, marginBottom:20 }}>
+          <ClimbBar currentDiff={currentLevel} banked={bankedPoints} busted={busted}/>
+        </div>
+
+        {/* Status card */}
+        {(busted || climbComplete || levelsDone.length > 0) && (
+          <Card style={{ marginBottom:16, textAlign:"center" }}>
+            {climbComplete && !busted && (
+              <>
+                <div style={{ color:C.teal, fontWeight:800, fontSize:16 }}>
+                  {bankedPoints === totalPossible ? "Perfect score! 🎯" : `Banked ${bankedPoints} points today`}
+                </div>
+                <div style={{ color:C.muted, fontSize:12, marginTop:4 }}>
+                  {bankedPoints === totalPossible ? "You conquered the full ladder!" : `Stopped at the ${difficulty || currentLevel-1}-worder`}
+                </div>
+              </>
+            )}
+            {busted && (
+              <>
+                <div style={{ color:C.red, fontWeight:800, fontSize:16 }}>Busted! 0 points today</div>
+                <div style={{ color:C.muted, fontSize:12, marginTop:4 }}>You fell on the {currentLevel}-worder</div>
+              </>
+            )}
+            {!busted && !climbComplete && levelsDone.length > 0 && (
+              <>
+                <div style={{ color:C.coral, fontWeight:800, fontSize:15 }}>
+                  {cumulativeAtLevel(currentLevel-1)} pts banked — keep climbing?
+                </div>
+                <div style={{ color:C.muted, fontSize:12, marginTop:4 }}>Next: {currentLevel}-worder worth {POINTS[currentLevel]} more pts</div>
+              </>
+            )}
+          </Card>
+        )}
+
+        {canClimb && (
+          <button onClick={() => startLevel(currentLevel)} style={{
+            background: C.forestPlay, color: C.white, border:"none",
+            borderRadius:14, fontFamily:"'Helvetica Neue', Helvetica, Arial, sans-serif",
+            fontWeight:700, fontSize:18, padding:"16px 48px", cursor:"pointer",
+            boxShadow:"0 5px 14px rgba(0,0,0,0.13), 0 2px 4px rgba(0,0,0,0.08)",
+          }}>
+            {currentLevel === 4 ? "Start today's climb" : `Climb to ${currentLevel}-worder →`}
+          </button>
+        )}
+
+        {!canClimb && remainingFun.length > 0 && (
+          <div style={{ display:"flex", gap:8, flexWrap:"wrap", justifyContent:"center" }}>
+            {remainingFun.map(d => (
+              <button key={d} onClick={() => startFun(d)} style={{
+                background:C.surface, border:"1.5px solid "+C.border, borderRadius:12,
+                padding:"10px 20px", cursor:"pointer", fontSize:14, fontWeight:700,
+                color:C.muted, fontFamily:"'Helvetica Neue', Helvetica, Arial, sans-serif",
+              }}>
+                Try {d}-worder (for fun)
+              </button>
+            ))}
+          </div>
+        )}
+
+        <div style={{ display:"flex", gap:10, marginTop:16 }}>
+          <Btn onClick={() => setScreen("howtoplay")} variant="secondary" style={{ fontSize:13, padding:"10px 18px" }}>How to play</Btn>
+          <Btn onClick={() => { const d = LEVELS.find(l => (session.practiceIdx?.[l]||0) < 3) || 4; startPractice(d); }}
+            variant="secondary" style={{ fontSize:13, padding:"10px 18px" }}>
+            Practice
+          </Btn>
+        </div>
+        <Btn onClick={() => setScreen("stats")} variant="ghost" style={{ marginTop:8, fontSize:13 }}>My stats →</Btn>
+
+        {/* Dev reset */}
+        <div onClick={() => {
+          localStorage.removeItem("altered_session_" + getDayKey());
+          setSession({ bankedPoints:0, climbLevel:4, busted:false, completed:false, funPlayed:[], practiceIdx:{4:0,5:0,6:0,7:0} });
+        }} style={{ marginTop:36, fontSize:11, color:C.border, cursor:"pointer", userSelect:"none" }}>
+          reset today
+        </div>
+      </Page>
+    );
+  }
+
+  // ── HOW TO PLAY ─────────────────────────────────────────────────────────
+  if (screen === "howtoplay") return (
+    <Page center={false}>
+      <div style={{ width:"100%", maxWidth:380 }}>
+        <div style={{ display:"flex", justifyContent:"center", marginBottom:16, marginTop:8 }}>
+          <AlteredLogo size="md"/>
+        </div>
+        <h2 style={{ textAlign:"center", color:C.ink, fontSize:20, margin:"0 0 20px", fontWeight:800 }}>How to play</h2>
+        <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
+          {[
+            { icon:<IconTarget size={36}/>, title:"Start at the bottom", body:"Everyone begins with a 4-worder. Solve it to climb to 5, then 6, then 7. You must play in order." },
+            { icon:<IconShuffle size={36}/>, title:"Unscramble the word", body:"The letters of a real word are jumbled on screen. The clock counts down — study the letters quickly!" },
+            { icon:<IconStop size={36}/>, title:"Hit GUESS when you know it", body:"Tap GUESS to freeze the clock, then type your answer. No typing timer — take a breath." },
+            { icon:<IconStar size={36}/>, title:"Bank or climb", body:"Solve a level and choose: bank your points safely, or risk them all climbing to the next level." },
+            { icon:<IconKeyboard size={36}/>, title:"Bust and lose it all", body:"Fail at any level and you lose all points for the day — but your streak stays safe. Come back tomorrow!" },
+          ].map((step, i) => (
+            <div key={i} style={{ background:C.white, border:"1.5px solid "+C.border, borderRadius:14,
+              padding:"14px 16px", display:"flex", gap:14, alignItems:"flex-start",
+              boxShadow:"0 2px 8px #00000008" }}>
+              {step.icon}
+              <div>
+                <div style={{ fontWeight:800, fontSize:14, color:C.ink, marginBottom:4 }}>{step.title}</div>
+                <div style={{ fontSize:13, color:C.muted, lineHeight:1.5 }}>{step.body}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+        <div style={{ display:"flex", gap:10, marginTop:20, justifyContent:"center" }}>
+          <Btn onClick={() => startPractice(4)} variant="primary" style={{ fontSize:14 }}>Try a practice round</Btn>
+          <Btn onClick={() => setScreen("home")} variant="secondary" style={{ fontSize:14 }}>Got it!</Btn>
+        </div>
+      </div>
+    </Page>
+  );
+
+  // ── GAME (real climb) ────────────────────────────────────────────────────
+  if (screen === "game" || screen === "game_fun") {
+    const isFun = screen === "game_fun";
+    const sz = difficulty >= 6 ? "sm" : "md";
+    return (
+      <Page>
+        <AlteredLogo size="sm"/>
+        <div style={{ marginTop:16, marginBottom:4, width:"100%", maxWidth:340 }}>
+          <ClimbBar currentDiff={difficulty} banked={bankedPoints} busted={false}/>
+        </div>
+        <div style={{ display:"flex", gap:8, margin:"12px 0 24px", justifyContent:"center" }}>
+          <span style={{ background:C.surface, borderRadius:20, padding:"4px 14px", fontSize:12, color:C.muted, fontWeight:700 }}>
+            {difficulty} letters
+          </span>
+          <span style={{ background: isFun ? C.surface : C.coral, borderRadius:20, padding:"4px 14px",
+            fontSize:12, color: isFun ? C.muted : C.white, fontWeight:700 }}>
+            {isFun ? "for fun" : isPractice ? "practice" : `${POINTS[difficulty]} pts on the line`}
+          </span>
+        </div>
+
+        <div style={{ display:"flex", gap:difficulty>=6?5:8, flexWrap:"nowrap", justifyContent:"center", marginBottom:32 }}>
+          {jumbled.split("").map((l,i) => <LetterTile key={i} letter={l} size={sz}/>)}
+        </div>
+
+        <ClockRing timeLeft={timeLeft} total={CLOCK[difficulty]}/>
+
+        <Btn onClick={handleStop} variant="primary" style={{ marginTop:22, fontSize:22, padding:"18px 60px", borderRadius:18, letterSpacing:1 }}>
+          GUESS
+        </Btn>
+        <p style={{ color:C.muted, fontSize:12, marginTop:12 }}>Tap GUESS when you know the answer</p>
+      </Page>
+    );
+  }
+
+  // ── TYPING ──────────────────────────────────────────────────────────────
+  if (screen === "typing") {
+    const sz = difficulty >= 6 ? "sm" : "md";
+    return (
+      <Page>
+        <AlteredLogo size="sm"/>
+        <p style={{ color:C.coral, fontSize:13, fontWeight:700, letterSpacing:2, textTransform:"uppercase", margin:"18px 0 8px" }}>
+          What's the word?
+        </p>
+        <p style={{ color:C.muted, fontSize:12, marginBottom:28 }}>{difficulty} letters</p>
+        <div style={{ display:"flex", gap:difficulty>=6?5:8, flexWrap:"nowrap", justifyContent:"center", marginBottom:28 }}>
+          {Array.from({length:difficulty}).map((_,i) => (
+            <div key={i} style={{
+              width: sz==="sm"?38:50, height:sz==="sm"?46:58,
+              background:C.surface, border:"2.5px dashed "+C.border, borderRadius:10, flexShrink:0,
+            }}/>
+          ))}
+        </div>
+        <input ref={inputRef} value={guess}
+          onChange={e => setGuess(e.target.value.toUpperCase())}
+          onKeyDown={e => { if(e.key==="Enter") handleGuessSubmit(); }}
+          maxLength={difficulty} placeholder="Type here…"
+          style={{
+            background:C.white, border:"2.5px solid "+C.coral, borderRadius:14,
+            color:C.ink, fontSize:28, fontWeight:900, textAlign:"center",
+            padding:"14px 16px", width:240, outline:"none",
+            fontFamily:"'Helvetica Neue', Helvetica, Arial, sans-serif", letterSpacing:4,
+            boxShadow:"0 4px 16px rgba(244,98,58,0.15)",
+          }}
+        />
+        <Btn onClick={handleGuessSubmit} variant="primary" style={{ marginTop:18, padding:"14px 48px", fontSize:17 }}>Submit</Btn>
+        <button onClick={() => setScreen("game")} style={{
+          background:"none", border:"none", color:C.muted, fontSize:12,
+          marginTop:12, cursor:"pointer", fontFamily:"'Helvetica Neue', Helvetica, Arial, sans-serif",
+        }}>← back to word</button>
+      </Page>
+    );
+  }
+
+  // ── RESULT ──────────────────────────────────────────────────────────────
+  if (screen === "result") {
+    const correct = outcome === "correct";
+    const timedOut = outcome === "timeout";
+    const isFunRound = screen === "result" && funPlayed.includes(difficulty);
+    const runningTotal = correct && !isPractice ? cumulativeAtLevel(difficulty) : bankedPoints;
+    const nextLevel = difficulty + 1;
+    const hasNextLevel = nextLevel <= 7 && correct && !isPractice;
+
+    return (
+      <Page>
+        <Confetti active={celebrating && correct}/>
+        <AlteredLogo size="sm"/>
+        <div style={{ margin:"16px 0 8px" }}>
+          {correct ? <IconWin size={60}/> : timedOut ? <IconTimeout size={60}/> : <IconWrong size={60}/>}
+        </div>
+        <div style={{ fontSize:22, fontWeight:800, color:correct?C.teal:C.coral, marginBottom:4 }}>
+          {correct ? (difficulty===7 && !isPractice ? "You conquered it all!" : "Solved it!") : timedOut ? "Time's up!" : "Not quite!"}
+        </div>
+
+        {isPractice && <p style={{ color:C.muted, fontSize:13, margin:"2px 0 16px" }}>Practice round — no points</p>}
+
+        {!isPractice && correct && (
+          <div style={{ background:C.teal+"18", border:"1.5px solid "+C.teal+"44", borderRadius:12,
+            padding:"10px 20px", textAlign:"center", marginBottom:16 }}>
+            <div style={{ color:C.teal, fontWeight:800, fontSize:15 }}>
+              +{POINTS[difficulty]} pts → {runningTotal} pts total
+            </div>
+            {difficulty < 7 && <div style={{ color:C.muted, fontSize:12, marginTop:2 }}>Keep going for {POINTS[nextLevel]} more pts</div>}
+          </div>
+        )}
+
+        {!isPractice && !correct && !session.completed && (
+          <div style={{ background:C.red+"15", border:"1.5px solid "+C.red+"44", borderRadius:12,
+            padding:"10px 20px", textAlign:"center", marginBottom:16 }}>
+            <div style={{ color:C.red, fontWeight:800, fontSize:15 }}>Busted! All points lost</div>
+            <div style={{ color:C.muted, fontSize:12, marginTop:2 }}>Your streak is safe — come back tomorrow</div>
+          </div>
+        )}
+
+        {/* Reveal section on wrong */}
+        {!correct && (
+          <Card style={{ marginBottom:16 }}>
+            <p style={{ color:C.muted, fontSize:12, margin:"0 0 10px", textAlign:"center" }}>The altered was:</p>
+            <div style={{ display:"flex", gap:difficulty>=6?4:6, justifyContent:"center", marginBottom:12, flexWrap:"nowrap" }}>
+              {jumbled.split("").map((l,i) => <LetterTile key={i} letter={l} revealed={revealed} size={difficulty>=6?"sm":"md"}/>)}
+            </div>
+            {revealed
+              ? <AnimatedWordReveal word={word} active={revealAnim}/>
+              : <div style={{ display:"flex", gap:10, justifyContent:"center" }}>
+                  <Btn variant="secondary" onClick={() => { setGuess(""); setScreen("typing"); }} style={{ fontSize:13, padding:"10px 16px" }}>Keep trying…</Btn>
+                  <Btn variant="outline" onClick={() => { setRevealed(true); setRevealAnim(true); }} style={{ fontSize:13, padding:"10px 16px" }}>Reveal</Btn>
+                </div>
+            }
+          </Card>
+        )}
+
+        {/* Bank or Climb decision — only when correct on a real game */}
+        {!isPractice && correct && difficulty < 7 && (
+          <Card style={{ marginBottom:16 }}>
+            <p style={{ color:C.ink, fontWeight:800, fontSize:14, margin:"0 0 6px", textAlign:"center" }}>
+              You've got {runningTotal} pts banked. What do you do?
+            </p>
+            <p style={{ color:C.muted, fontSize:12, margin:"0 0 14px", textAlign:"center" }}>
+              Fail the next level and you lose everything.
+            </p>
+            <div style={{ display:"flex", gap:10, justifyContent:"center" }}>
+              <Btn onClick={handleBank} variant="teal" style={{ fontSize:14, padding:"12px 20px" }}>
+                Bank {runningTotal} pts ✓
+              </Btn>
+              <Btn onClick={() => startLevel(nextLevel)} variant="primary" style={{ fontSize:14, padding:"12px 20px" }}>
+                Risk it! {nextLevel}-worder →
+              </Btn>
+            </div>
+          </Card>
+        )}
+
+        {/* Practice next round */}
+        {isPractice && (
+          <div style={{ display:"flex", gap:10, marginTop:4 }}>
+            {(session.practiceIdx?.[difficulty]||0) < 3
+              ? <Btn onClick={() => startPractice(difficulty)} variant="teal" style={{ fontSize:14, padding:"12px 20px" }}>
+                  Next practice ({3-(session.practiceIdx?.[difficulty]||0)} left)
+                </Btn>
+              : <div style={{ color:C.muted, fontSize:13, padding:"10px 0" }}>No more practice today</div>
+            }
+            <Btn onClick={() => setScreen("home")} variant="primary" style={{ fontSize:14, padding:"12px 20px" }}>Play for real →</Btn>
+          </div>
+        )}
+
+        <div style={{ display:"flex", gap:10, marginTop:16 }}>
+          <Btn onClick={() => setScreen("stats")} variant="teal" style={{ fontSize:14, padding:"12px 20px" }}>Stats</Btn>
+          <Btn onClick={() => setScreen("home")} variant="secondary" style={{ fontSize:14, padding:"12px 20px" }}>Home</Btn>
+        </div>
+      </Page>
+    );
+  }
+
+  // ── BANKED ──────────────────────────────────────────────────────────────
+  if (screen === "banked") {
+    const remaining = LEVELS.filter(l => l > difficulty);
+    return (
+      <Page>
+        <Confetti active={true}/>
+        <AlteredLogo size="sm"/>
+        <div style={{ margin:"20px 0 10px" }}><IconWin size={64}/></div>
+        <h2 style={{ color:C.teal, fontSize:24, fontWeight:800, margin:"0 0 6px" }}>Points banked!</h2>
+        <div style={{ fontSize:48, fontWeight:900, color:C.ink, margin:"8px 0 4px", fontFamily:"'Helvetica Neue', Helvetica, Arial, sans-serif" }}>
+          {bankedPoints || cumulativeAtLevel(difficulty)}
+        </div>
+        <div style={{ color:C.muted, fontSize:14, marginBottom:20 }}>points secured for today</div>
+
+        <ClimbBar currentDiff={difficulty} banked={bankedPoints} busted={false}/>
+
+        {remaining.length > 0 && (
+          <Card style={{ marginTop:20, textAlign:"center" }}>
+            <p style={{ color:C.muted, fontSize:13, margin:"0 0 12px" }}>
+              Play the rest for fun? No points on the line.
+            </p>
+            <div style={{ display:"flex", gap:8, justifyContent:"center", flexWrap:"wrap" }}>
+              {remaining.map(d => (
+                <button key={d} onClick={() => startFun(d)} style={{
+                  background:C.surface, border:"1.5px solid "+C.border, borderRadius:10,
+                  padding:"10px 18px", cursor:"pointer", fontSize:14, fontWeight:700,
+                  color:C.ink, fontFamily:"'Helvetica Neue', Helvetica, Arial, sans-serif",
+                }}>
+                  {d}-worder
+                </button>
+              ))}
+            </div>
+          </Card>
+        )}
+
+        <div style={{ display:"flex", gap:10, marginTop:20 }}>
+          <Btn onClick={() => setScreen("stats")} variant="teal" style={{ fontSize:14, padding:"12px 20px" }}>Stats</Btn>
+          <Btn onClick={() => setScreen("home")} variant="secondary" style={{ fontSize:14, padding:"12px 20px" }}>Home</Btn>
+        </div>
+      </Page>
+    );
+  }
+
+  // ── STATS ───────────────────────────────────────────────────────────────
+  if (screen === "stats") {
+    const dc = stats.diffCounts || {4:0,5:0,6:0,7:0};
+    const total = Math.max(Object.values(dc).reduce((a,b)=>a+b,0), 1);
+    const barColors = { 4:C.teal, 5:C.forest5, 6:C.forest6, 7:C.forest7 };
+    return (
+      <Page center={false}>
+        <div style={{ display:"flex", flexDirection:"column", alignItems:"center", width:"100%", maxWidth:380 }}>
+          <div style={{ margin:"8px 0 6px" }}><AlteredLogo size="md"/></div>
+          <p style={{ color:C.muted, fontSize:13, margin:"0 0 24px" }}>Your puzzle history</p>
+          <div style={{ display:"flex", gap:12, marginBottom:18, width:"100%" }}>
+            {[
+              { label:"Total Score", val:stats.totalScore||0, unit:"pts", color:C.coral },
+              { label:"Win Streak",  val:stats.streak||0,      unit:"days", color:C.teal },
+            ].map(s => (
+              <div key={s.label} style={{ flex:1, background:C.white, borderRadius:16, padding:"18px 12px",
+                textAlign:"center", border:"1.5px solid "+C.border, boxShadow:"0 2px 10px #00000010" }}>
+                <div style={{ fontSize:36, fontWeight:900, color:s.color }}>{s.val}</div>
+                <div style={{ fontSize:11, color:C.muted, marginTop:2 }}>{s.unit}</div>
+                <div style={{ fontSize:11, color:C.muted, marginTop:4, fontWeight:600 }}>{s.label}</div>
+              </div>
+            ))}
+          </div>
+          <Card>
+            <p style={{ color:C.muted, fontSize:11, margin:"0 0 14px", letterSpacing:2, textTransform:"uppercase", fontWeight:700 }}>
+              Highest level reached
+            </p>
+            {LEVELS.map(d => (
+              <div key={d} style={{ marginBottom:12 }}>
+                <div style={{ display:"flex", justifyContent:"space-between", marginBottom:5 }}>
+                  <span style={{ color:C.ink, fontSize:13, fontWeight:700 }}>{d} worder <span style={{ color:C.muted, fontWeight:400 }}>· {POINTS[d]}pt</span></span>
+                  <span style={{ color:barColors[d], fontSize:13, fontWeight:800 }}>{dc[d]||0}</span>
+                </div>
+                <div style={{ height:7, background:C.surface, borderRadius:4 }}>
+                  <div style={{ height:7, background:barColors[d], borderRadius:4, width:((dc[d]||0)/total*100)+"%", transition:"width 0.6s" }}/>
+                </div>
+              </div>
+            ))}
+          </Card>
+          <Btn onClick={() => setScreen("home")} variant="ghost" style={{ marginTop:20, fontSize:13 }}>← Back to home</Btn>
+        </div>
+      </Page>
+    );
+  }
+
+  return null;
+}
